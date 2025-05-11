@@ -81,7 +81,7 @@ credentials = {
             email: {
                 "email": email,
                 "name": user_data["nickname"],
-                "password": [user_data["password"]]
+                "password": user_data["password"]
             } for email, user_data in users.items()
         }
     }
