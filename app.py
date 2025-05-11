@@ -73,14 +73,14 @@ credentials = {
     }
 }
 
-with st.sidebar:
-    authenticator = stauth.Authenticate(
-        credentials,
-        "love_point_app",
-        "abcdef",  # cookie key
-        cookie_expiry_days=30
-    )
-    name, authentication_status, username = authenticator.login("ログイン", "sidebar")
+authenticator = stauth.Authenticate(
+    credentials,
+    "love_point_app",
+    "abcdef",  # cookie key
+    cookie_expiry_days=30
+)
+
+name, authentication_status, username = authenticator.login("ログイン", "sidebar")
 
 # --- App Logic ---
 if authentication_status:
