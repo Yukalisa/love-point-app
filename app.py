@@ -1,32 +1,42 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import streamlit as st
-import json
-import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import os
+import json
 
-# ユーザーデータを保存するファイル
-USER_FILE = "users.json"
+# Google Sheets 認証設定（secretsから取得）
+SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds_dict = st.secrets["gspread"]
+CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
+client = gspread.authorize(CREDS)
 
-# 各ユーザーのログ保存ディレクトリ
+# ユーザー情報を保存するスプレッドシート
+SHEET_NAME = "love-point-users"
+sheet = client.open(SHEET_NAME).sheet1
+
+# 各ユーザーのログ保存ディレクトリ（ここはローカルのまま）
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# ユーザーデータの読み書き
-
+# スプレッドシートからユーザーを読み込む
 def load_users():
-    if os.path.exists(USER_FILE):
-        with open(USER_FILE, "r") as f:
-            return json.load(f)
-    return {}
+    users = {}
+    data = sheet.get_all_records()
+    for row in data:
+        users[row["email"]] = {
+            "password": row["password"],
+            "nickname": row["nickname"],
+            "points": int(row["points"])
+        }
+    return users
 
+# ユーザー情報を保存（全データを書き換える方式）
 def save_users(users):
-    with open(USER_FILE, "w") as f:
-        json.dump(users, f)
+    sheet.clear()
+    sheet.append_row(["email", "password", "nickname", "points"])
+    for email, info in users.items():
+        sheet.append_row([email, info["password"], info["nickname"], info["points"]])
 
 # ログイン状態を管理する
 if "user" not in st.session_state:
@@ -37,7 +47,7 @@ if "page" not in st.session_state:
     st.session_state.page = "ログイン"
 
 # ページ一覧と現在ページ選択
-pages = ["ログイン", "新規登録", "愛ポイント", "ログを見る"]
+pages = ["ログイン", "新規登録", "愛してるyoポイント", "ログを見る", "設定"]
 menu = st.sidebar.selectbox("メニューを選んでね", pages, index=pages.index(st.session_state.page))
 
 users = load_users()
@@ -64,34 +74,33 @@ elif menu == "ログイン":
     if st.button("ログイン"):
         if email in users and users[email]["password"] == password:
             st.session_state.user = email
-            st.session_state.page = "愛ポイント"  # ★ 自動遷移設定
+            st.session_state.page = "愛してるyoポイント"
             st.success(f"{users[email]['nickname']}さん、ようこそ💖")
-            st.rerun()  # ★ 再読み込みで自動遷移反映
+            st.rerun()
         else:
             st.error("メールアドレスまたはパスワードが違います")
 
-# 愛ポイントページ
-elif menu == "愛ポイント":
+# 愛してるyoポイントページ
+elif menu == "愛してるyoポイント":
     if st.session_state.user is None:
         st.warning("ログインしてください")
     else:
         user = users[st.session_state.user]
-        st.header(f"💖 {user['nickname']}の愛ポイント")
+        st.header(f"💖 {user['nickname']}の愛してるyoポイント")
         if st.button("愛してるyo💘"):
             user["points"] += 1
             save_users(users)
-            # ログ保存
             with open(os.path.join(LOG_DIR, f"{st.session_state.user}.txt"), "a") as f:
                 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - 愛してるyo\n")
-            st.success("1 愛ポイント加算されました！")
-        st.markdown(f"### 現在の愛ポイント：{user['points']}")
+            st.success("1 愛してるyoポイント が加算されました！")
+        st.markdown(f"### 現在の愛してるyoポイント：{user['points']}")
 
 # ログページ
 elif menu == "ログを見る":
     if st.session_state.user is None:
         st.warning("ログインしてください")
     else:
-        st.header("📜 あなたの愛ログ")
+        st.header("📜 あなたの愛してるyoログ")
         log_path = os.path.join(LOG_DIR, f"{st.session_state.user}.txt")
         if os.path.exists(log_path):
             with open(log_path, "r") as f:
@@ -101,3 +110,22 @@ elif menu == "ログを見る":
         else:
             st.info("まだ愛してるyoを押してないみたい…")
 
+# 設定ページ（アカウント削除）
+elif menu == "設定":
+    if st.session_state.user:
+        st.header("⚙️ アカウント設定")
+        st.warning("この操作は取り消せません。アカウントを削除するにはパスワードを入力してください。")
+        password = st.text_input("パスワード", type="password")
+        if st.button("アカウントを削除する"):
+            current_email = st.session_state.user
+            if users[current_email]["password"] == password:
+                users.pop(current_email)
+                save_users(users)
+                with open(os.path.join(LOG_DIR, "delete_log.txt"), "a") as f:
+                    f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + f" - {current_email} アカウント削除\n")
+                st.session_state.user = None
+                st.session_state.page = "ログイン"
+                st.success("アカウントを削除しました。またいつでも戻ってきてね！")
+                st.rerun()
+            else:
+                st.error("パスワードが間違っています")
