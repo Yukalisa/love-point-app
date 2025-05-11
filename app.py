@@ -80,7 +80,7 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=30
 )
 
-name, authentication_status, username = authenticator.login("ログイン")
+name, authentication_status, username = authenticator.login("ログイン", location="main")
 
 # --- App Logic ---
 if authentication_status:
