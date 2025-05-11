@@ -141,7 +141,9 @@ if authentication_status:
         st.warning("この操作は取り消せません。アカウントを削除するにはパスワードを入力してください。")
         password = st.text_input("パスワード", type="password")
         if st.button("アカウントを削除する"):
-            if users[username]["password"] == password:
+            import bcrypt
+...
+if bcrypt.checkpw(password.encode(), users[username]["password"].encode()):
                 users.pop(username)
                 save_users(users)
                 with open(os.path.join(LOG_DIR, "delete_log.txt"), "a") as f:
