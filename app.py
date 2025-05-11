@@ -11,9 +11,8 @@ creds_dict = st.secrets["gspread"]
 CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
 client = gspread.authorize(CREDS)
 
-# ユーザー情報を保存するスプレッドシート
-SHEET_NAME = "love-point-users"
-sheet = client.open(SHEET_NAME).sheet1
+# ユーザー情報を保存するスプレッドシート（URLで直接指定）
+sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1It2O3TFIM64p2wKaYhraukLk0uEAsHWssfdlz_jsnBI/edit").sheet1
 
 # 各ユーザーのログ保存ディレクトリ（ここはローカルのまま）
 LOG_DIR = "logs"
