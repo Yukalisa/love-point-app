@@ -6,7 +6,7 @@ import os
 import json
 
 # Google Sheets 認証設定（secretsから取得）
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+SCOPE = ["https://docs.google.com/spreadsheets/d/1xcAlgwSuOCF9vPDmEcN0a0pUfvxF3Vnq57w_pDy6tgw/edit?gid=0#gid=0"]
 creds_dict = st.secrets["gspread"]
 CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
 client = gspread.authorize(CREDS)
