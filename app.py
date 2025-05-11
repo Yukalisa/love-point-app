@@ -64,17 +64,19 @@ def append_point_log(email):
 # --- Authentication Setup ---
 users = load_users()
 credentials = {
-    "usernames": {
-        email: {
-            "email": email,
-            "name": user_data["nickname"],
-            "password": user_data["password"]
-        } for email, user_data in users.items()
+    "credentials": {
+        "usernames": {
+            email: {
+                "email": email,
+                "name": user_data["nickname"],
+                "password": user_data["password"]
+            } for email, user_data in users.items()
+        }
     }
 }
 
 authenticator = stauth.Authenticate(
-    credentials,
+    credentials["credentials"],
     "love_point_app",
     "abcdef",  # cookie key
     cookie_expiry_days=30
