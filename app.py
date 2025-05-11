@@ -80,7 +80,7 @@ with st.sidebar:
         "abcdef",  # cookie key
         cookie_expiry_days=30
     )
-    name, authentication_status, username = authenticator.login("ログイン", "main")
+    name, authentication_status, username = authenticator.login("ログイン", "sidebar")
 
 # --- App Logic ---
 if authentication_status:
