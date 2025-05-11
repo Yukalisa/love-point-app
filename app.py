@@ -70,7 +70,7 @@ if st.sidebar.button("🔎 デバッグ表示（ログインデータ）"):
         email: {
             "email": email,
             "name": user_data["nickname"],
-            "password": [user_data["password"]]
+            "password": user_data["password"]
         } for email, user_data in tmp_users.items()
     }
     st.write(tmp_credentials)
