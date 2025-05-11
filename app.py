@@ -88,8 +88,13 @@ if authentication_status:
     authenticator.logout("ログアウト", "sidebar")
     st.session_state.user = username
 
+    # デフォルトページを愛してるyoポイントに設定
+    if "menu" not in st.session_state:
+        st.session_state.menu = "愛してるyoポイント"
+
     pages = ["愛してるyoポイント", "ログを見る", "設定"]
-    menu = st.sidebar.selectbox("メニューを選んでね", pages)
+    menu = st.sidebar.selectbox("メニューを選んでね", pages, index=pages.index(st.session_state.menu))
+    st.session_state.menu = menu
 
     # 愛してるyoポイント
     if menu == "愛してるyoポイント":
