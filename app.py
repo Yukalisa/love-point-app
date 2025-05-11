@@ -11,8 +11,9 @@ creds_dict = st.secrets["gspread"]
 CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
 client = gspread.authorize(CREDS)
 
-# ユーザー情報を保存するスプレッドシート（URLで直接指定）
-sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1It2O3TFIM64p2wKaYhraukLk0uEAsHWssfdlz_jsnBI/edit").sheet1
+# スプレッドシートの読み込み関数
+def load_sheet():
+    return client.open_by_url("https://docs.google.com/spreadsheets/d/1It2O3TFIM64p2wKaYhraukLk0uEAsHWssfdlz_jsnBI/edit").sheet1
 
 # 各ユーザーのログ保存ディレクトリ（ここはローカルのまま）
 LOG_DIR = "logs"
@@ -21,21 +22,30 @@ os.makedirs(LOG_DIR, exist_ok=True)
 # スプレッドシートからユーザーを読み込む
 def load_users():
     users = {}
-    data = sheet.get_all_records()
-    for row in data:
-        users[row["email"]] = {
-            "password": row["password"],
-            "nickname": row["nickname"],
-            "points": int(row["points"])
-        }
+    try:
+        sheet = load_sheet()
+        data = sheet.get_all_records()
+        for row in data:
+            users[row["email"]] = {
+                "password": row["password"],
+                "nickname": row["nickname"],
+                "points": int(row["points"])
+            }
+    except Exception as e:
+        st.error("ユーザーデータの読み込みに失敗しました。しばらくしてから再度お試しください。")
+        st.stop()
     return users
 
 # ユーザー情報を保存（全データを書き換える方式）
 def save_users(users):
-    sheet.clear()
-    sheet.append_row(["email", "password", "nickname", "points"])
-    for email, info in users.items():
-        sheet.append_row([email, info["password"], info["nickname"], info["points"]])
+    try:
+        sheet = load_sheet()
+        sheet.clear()
+        sheet.append_row(["email", "password", "nickname", "points"])
+        for email, info in users.items():
+            sheet.append_row([email, info["password"], info["nickname"], info["points"]])
+    except Exception as e:
+        st.error("ユーザーデータの保存に失敗しました。")
 
 # ログイン状態を管理する
 if "user" not in st.session_state:
