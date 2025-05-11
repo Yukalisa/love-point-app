@@ -66,7 +66,7 @@ elif menu == "ログイン":
             st.session_state.user = email
             st.session_state.page = "愛ポイント"  # ★ 自動遷移設定
             st.success(f"{users[email]['nickname']}さん、ようこそ💖")
-            st.experimental_rerun()  # ★ 再読み込みで自動遷移反映
+            st.rerun()  # ★ 再読み込みで自動遷移反映
         else:
             st.error("メールアドレスまたはパスワードが違います")
 
