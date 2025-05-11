@@ -63,6 +63,10 @@ def append_point_log(email):
 
 # --- Authentication Setup ---
 
+# 🔍 読み込んだユーザー情報を確認
+st.sidebar.write("🔍 users データ:")
+st.sidebar.write(load_users())
+
 # 🔍 デバッグボタンでcredentials表示
 if st.sidebar.button("🔎 デバッグ表示（ログインデータ）"):
     tmp_users = load_users()
