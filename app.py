@@ -92,7 +92,7 @@ elif menu == "愛してるyoポイント":
             save_users(users)
             with open(os.path.join(LOG_DIR, f"{st.session_state.user}.txt"), "a") as f:
                 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - 愛してるyo\n")
-            st.success("1 愛してるyoポイント が加算されました！")
+            st.success("1 愛してるyoポイント加算されました！")
         st.markdown(f"### 現在の愛してるyoポイント：{user['points']}")
 
 # ログページ
@@ -100,7 +100,7 @@ elif menu == "ログを見る":
     if st.session_state.user is None:
         st.warning("ログインしてください")
     else:
-        st.header("📜 あなたの愛してるyoログ")
+        st.header("📜 あなたの愛ログ")
         log_path = os.path.join(LOG_DIR, f"{st.session_state.user}.txt")
         if os.path.exists(log_path):
             with open(log_path, "r") as f:
