@@ -62,6 +62,18 @@ def append_point_log(email):
         st.warning("ポイントの記録に失敗しましたが、ポイントは加算されています")
 
 # --- Authentication Setup ---
+
+# 🔍 デバッグボタンでcredentials表示
+if st.sidebar.button("🔎 デバッグ表示（ログインデータ）"):
+    tmp_users = load_users()
+    tmp_credentials = {
+        email: {
+            "email": email,
+            "name": user_data["nickname"],
+            "password": [user_data["password"]]
+        } for email, user_data in tmp_users.items()
+    }
+    st.write(tmp_credentials)
 users = load_users()
 credentials = {
     "credentials": {
