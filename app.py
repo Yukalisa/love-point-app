@@ -6,24 +6,31 @@ import os
 import json
 
 # Google Sheets 認証設定（secretsから取得）
-SCOPE = ["https://docs.google.com/spreadsheets/d/1xcAlgwSuOCF9vPDmEcN0a0pUfvxF3Vnq57w_pDy6tgw/edit?gid=0#gid=0"]
+SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds_dict = st.secrets["gspread"]
 CREDS = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
 client = gspread.authorize(CREDS)
 
-# スプレッドシートの読み込み関数
-def load_sheet():
-    return client.open_by_url("https://docs.google.com/spreadsheets/d/1It2O3TFIM64p2wKaYhraukLk0uEAsHWssfdlz_jsnBI/edit").sheet1
+# URLをそれぞれ分ける（ユーザー情報／ポイントログ）
+USER_SHEET_URL = st.secrets["gspread"]["user_sheet_url"]
+POINT_LOG_SHEET_URL = st.secrets["gspread"]["point_log_sheet_url"]
 
-# 各ユーザーのログ保存ディレクトリ（ここはローカルのまま）
+# 各ユーザーのログ保存ディレクトリ（ローカル）
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
+
+# スプレッドシート読み込み関数
+def load_user_sheet():
+    return client.open_by_url(USER_SHEET_URL).sheet1
+
+def load_point_log_sheet():
+    return client.open_by_url(POINT_LOG_SHEET_URL).sheet1
 
 # スプレッドシートからユーザーを読み込む
 def load_users():
     users = {}
     try:
-        sheet = load_sheet()
+        sheet = load_user_sheet()
         data = sheet.get_all_records()
         for row in data:
             users[row["email"]] = {
@@ -36,16 +43,24 @@ def load_users():
         st.stop()
     return users
 
-# ユーザー情報を保存（全データを書き換える方式）
+# ユーザー情報を保存
 def save_users(users):
     try:
-        sheet = load_sheet()
+        sheet = load_user_sheet()
         sheet.clear()
         sheet.append_row(["email", "password", "nickname", "points"])
         for email, info in users.items():
             sheet.append_row([email, info["password"], info["nickname"], info["points"]])
     except Exception as e:
         st.error("ユーザーデータの保存に失敗しました。")
+
+# ポイントログをGoogle Sheetsへ追記
+def append_point_log(email):
+    try:
+        sheet = load_point_log_sheet()
+        sheet.append_row([email, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    except Exception as e:
+        st.warning("ポイントの記録に失敗しましたが、ポイントは加算されています")
 
 # ログイン状態を管理する
 if "user" not in st.session_state:
@@ -103,6 +118,7 @@ elif menu == "愛してるyoポイント":
         if st.button("愛してるyo💘"):
             user["points"] += 1
             save_users(users)
+            append_point_log(st.session_state.user)
             with open(os.path.join(LOG_DIR, f"{st.session_state.user}.txt"), "a") as f:
                 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - 愛してるyo\n")
             st.success("1 愛してるyoポイント加算されました！")
